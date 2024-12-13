@@ -1,0 +1,221 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char nome[50];
+    int idade;
+    char cpf[12];  // CPF com 11 caracteres + '\0'
+} Pessoa;
+
+void adicionarCadastro(Pessoa **cadastros, int *total) {
+    if (*total >= 100) {
+        printf("Limite máximo de cadastros atingido!\n");
+        return;
+    }
+    Pessoa nova_pessoa;
+
+    printf("Digite o nome: ");
+    scanf("%49s", nova_pessoa.nome);
+    printf("Digite a idade: ");
+    scanf("%d", &nova_pessoa.idade);
+    printf("Digite o CPF: ");
+    scanf("%11s", nova_pessoa.cpf);
+
+    (*cadastros)[*total] = nova_pessoa;
+    (*total)++;
+    *cadastros = realloc(*cadastros, (*total + 1) * sizeof(Pessoa)); // realloc para aumentar a memória
+    if (*cadastros == NULL) {
+        printf("Erro na realocação de memória!\n");
+        exit(1); // Caso a realocação falhe, o programa é encerrado
+    }
+}
+
+void listarCadastros(Pessoa *cadastros, int total) {
+    if (total == 0) {
+        printf("Nenhum cadastro disponível!\n");
+        return;
+    }
+    for (int i = 0; i < total; i++) {
+        printf("Cadastro %d\n", i + 1);  // Corrigido para começar a contagem em 1
+        printf("Nome: %s\n", cadastros[i].nome);
+        printf("Idade: %d\n", cadastros[i].idade);
+        printf("CPF: %s\n\n", cadastros[i].cpf);
+    }
+}
+
+void deletarCadastro(Pessoa **cadastros, int *total) {
+    int index;
+
+    if (*total == 0) {
+        printf("Nenhum cadastro para deletar!\n");
+        return;
+    }
+
+    printf("Digite o índice do cadastro que deseja deletar: ");
+    scanf("%d", &index);
+
+    if (index < 1 || index > *total) {  // Corrigido para validar corretamente o índice
+        printf("Índice inválido!\n");
+        return;
+    }
+
+    // Desloca os cadastros para preencher o espaço deixado pelo deletado
+    for (int i = index - 1; i < *total - 1; i++) {
+        (*cadastros)[i] = (*cadastros)[i + 1];
+    }
+
+    (*total)--;
+    *cadastros = realloc(*cadastros, (*total) * sizeof(Pessoa)); // realloc para ajustar o tamanho da memória
+    if (*cadastros == NULL && *total > 0) {  // Verifica se a realocação falhou
+        printf("Erro na realocação de memória após deletar!\n");
+        exit(1);
+    }
+
+    printf("Cadastro deletado com sucesso!\n");
+}
+
+void atualizarCadastro(Pessoa *cadastros, int total) {
+    int index;
+
+    if (total == 0) {
+        printf("Nenhum cadastro para atualizar!\n");
+        return;
+    }
+
+    printf("Digite o índice do cadastro que deseja atualizar: ");
+    scanf("%d", &index);
+
+    if (index < 1 || index > total) {
+        printf("Índice inválido!\n");
+        return;
+    }
+
+    index--;  // Ajusta para índice 0-based
+
+    printf("Atualizando cadastro de %s:\n", cadastros[index].nome);
+    printf("Digite o novo nome: ");
+    scanf("%49s", cadastros[index].nome);
+    printf("Digite a nova idade: ");
+    scanf("%d", &cadastros[index].idade);
+    printf("Digite o novo CPF: ");
+    scanf("%11s", cadastros[index].cpf);
+
+    printf("Cadastro atualizado com sucesso!\n");
+}
+
+void buscarCadastroPorNome(Pessoa *cadastros, int total) {
+    char nomeBusca[50];
+    int encontrado = 0;
+
+    if (total == 0) {
+        printf("Nenhum cadastro para buscar!\n");
+        return;
+    }
+
+    printf("Digite o nome para buscar: ");
+    scanf("%49s", nomeBusca);
+
+    for (int i = 0; i < total; i++) {
+        if (strcmp(cadastros[i].nome, nomeBusca) == 0) {
+            printf("Cadastro encontrado!\n");
+            printf("Nome: %s\n", cadastros[i].nome);
+            printf("Idade: %d\n", cadastros[i].idade);
+            printf("CPF: %s\n", cadastros[i].cpf);
+            encontrado = 1;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        printf("Cadastro com nome %s não encontrado!\n", nomeBusca);
+    }
+}
+
+void buscarCadastroPorCPF(Pessoa *cadastros, int total) {
+    char cpfBusca[12];
+    int encontrado = 0;
+
+    if (total == 0) {
+        printf("Nenhum cadastro para buscar!\n");
+        return;
+    }
+
+    printf("Digite o CPF para buscar: ");
+    scanf("%11s", cpfBusca);
+
+    for (int i = 0; i < total; i++) {
+        if (strcmp(cadastros[i].cpf, cpfBusca) == 0) {
+            printf("Cadastro encontrado!\n");
+            printf("Nome: %s\n", cadastros[i].nome);
+            printf("Idade: %d\n", cadastros[i].idade);
+            printf("CPF: %s\n", cadastros[i].cpf);
+            encontrado = 1;
+            break;
+        }
+    }
+
+    if (!encontrado) {
+        printf("Cadastro com CPF %s não encontrado!\n", cpfBusca);
+    }
+}
+
+void exibirMenu() {
+    printf("Sistema de Cadastro:\n");
+    printf("1. Adicionar Cadastro\n");
+    printf("2. Listar Cadastros\n");
+    printf("3. Deletar Cadastro\n");
+    printf("4. Atualizar Cadastro\n");
+    printf("5. Buscar Cadastro por Nome\n");
+    printf("6. Buscar Cadastro por CPF\n");
+    printf("7. Sair\n");
+}
+
+void tratarOpcao(int opcao, Pessoa **cadastros, int *total) {
+    switch (opcao) {
+        case 1:
+            adicionarCadastro(cadastros, total);
+            break;
+        case 2:
+            listarCadastros(*cadastros, *total);
+            break;
+        case 3:
+            deletarCadastro(cadastros, total);
+            break;
+        case 4:
+            atualizarCadastro(*cadastros, *total);
+            break;
+        case 5:
+            buscarCadastroPorNome(*cadastros, *total);
+            break;
+        case 6:
+            buscarCadastroPorCPF(*cadastros, *total);
+            break;
+        case 7:
+            free(*cadastros);
+            printf("Saindo...\n");
+            break;
+        default:
+            printf("Opção inválida!\n");
+    }
+}
+
+int main() {
+    Pessoa *cadastros = malloc(sizeof(Pessoa));
+    if (cadastros == NULL) {  // Verifica se a alocação inicial falhou
+        printf("Erro na alocação de memória!\n");
+        return 1;
+    }
+
+    int total = 0;
+    int opcao;
+
+    do {
+        exibirMenu();
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+        tratarOpcao(opcao, &cadastros, &total);
+    } while (opcao != 7);
+
+    return 0;
+}
